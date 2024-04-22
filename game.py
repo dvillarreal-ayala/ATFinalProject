@@ -1,6 +1,7 @@
 # This code was created by Damian Villarreal-Ayala on April 18 2024
 #Imports
 import mediapipe as mp
+from mediapipe import solutions
 import cv2
 import numpy as np
 from mediapipe.framework.formats import landmark_pb2
@@ -27,6 +28,27 @@ class Game:
 
         self.video = cv2.VideoCapture(0)
 
+    def draw_landmarks_on_hand(self, image, detection_result):
+        # Get a list of the landmarks
+        hand_landmarks_list = detection_result.hand_landmarks
+        
+        # Loop through the detected hands to visualize.
+        for idx in range(len(hand_landmarks_list)):
+            hand_landmarks = hand_landmarks_list[idx]
+
+            # Save the landmarks into a NormalizedLandmarkList
+            hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+            hand_landmarks_proto.landmark.extend([
+            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks
+            ])
+
+            # Draw the landmarks on the hand
+            DrawingUtil.draw_landmarks(image,
+                                    hand_landmarks_proto,
+                                    solutions.hands.HAND_CONNECTIONS,
+                                    solutions.drawing_styles.get_default_hand_landmarks_style(),
+                                    solutions.drawing_styles.get_default_hand_connections_style())
+            
     def run(self):
         # Begin writing code
         while self.video.isOpened():
@@ -47,8 +69,7 @@ class Game:
             results = self.detector.detect(to_detect)
 
             # Draw the hand landmarks
-            # self.draw_landmarks_on_hand(image, results)
-            # self.check_enemy_kill(image, results)
+            self.draw_landmarks_on_hand(image, results)
 
             # Change the color of the frame back
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
