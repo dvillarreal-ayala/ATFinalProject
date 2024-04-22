@@ -47,7 +47,7 @@ class Game:
             results = self.detector.detect(to_detect)
 
             # Draw the hand landmarks
-            self.draw_landmarks_on_hand(image, results)
+            # self.draw_landmarks_on_hand(image, results)
             # self.check_enemy_kill(image, results)
 
             # Change the color of the frame back
