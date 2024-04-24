@@ -6,6 +6,11 @@ import cv2
 import numpy as np
 from mediapipe.framework.formats import landmark_pb2
 import time
+# from playsound import playsound
+
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
 
 # Library Constants (from FingerTracking)
 BaseOptions = mp.tasks.BaseOptions
@@ -48,7 +53,37 @@ class Game:
                                     solutions.hands.HAND_CONNECTIONS,
                                     solutions.drawing_styles.get_default_hand_landmarks_style(),
                                     solutions.drawing_styles.get_default_hand_connections_style())
-            
+
+    def finger_detection(self, image, detection_result, time):
+        # Get image details
+        imageHeight, imageWidth = image.shape[:2]
+            # Get a list of the landmarks
+        hand_landmarks_list = detection_result.hand_landmarks
+    
+        # Loop through the detected hands to visualize.
+        for idx in range(len(hand_landmarks_list)):
+            hand_landmarks = hand_landmarks_list[idx]
+    
+            # Get the coordinate of just the index finger
+            index = hand_landmarks[HandLandmarkPoints.INDEX_FINGER_TIP.value]
+            middle = hand_landmarks[HandLandmarkPoints.MIDDLE_FINGER_TIP.value] 
+            thumb = hand_landmarks[HandLandmarkPoints.THUMB_TIP.value]
+
+            # Map the coordinate back to screen dimensions
+            pixelCoordindex = DrawingUtil._normalized_to_pixel_coordinates(index.x, index.y, imageWidth, imageHeight)
+            pixelCoordmiddle = DrawingUtil._normalized_to_pixel_coordinates(middle.x, middle.y, imageWidth, imageHeight)
+            pixelCoordthumb = DrawingUtil._normalized_to_pixel_coordinates(thumb.x, thumb.y, imageWidth, imageHeight)
+
+            if pixelCoordindex:
+                # Draw the circle around the index finger
+                cv2.circle(image, (pixelCoordindex[0], pixelCoordindex[1]), 25, GREEN, 5)
+            if pixelCoordmiddle:
+                # Draw the circle around the index finger
+                cv2.circle(image, (pixelCoordmiddle[0], pixelCoordmiddle[1]), 25, GREEN, 5)        
+            if pixelCoordthumb:
+                # Draw the circle around the index finger
+                cv2.circle(image, (pixelCoordthumb[0], pixelCoordthumb[1]), 25, RED, 5)
+                        
     def run(self):
         # Begin writing code
         while self.video.isOpened():
@@ -69,7 +104,10 @@ class Game:
             results = self.detector.detect(to_detect)
 
             # Draw the hand landmarks
-            self.draw_landmarks_on_hand(image, results)
+            # self.draw_landmarks_on_hand(image, results)
+
+            # Draw box around hand when thumb is extended
+            self.finger_detection(image, results, start_time)
 
             # Change the color of the frame back
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
