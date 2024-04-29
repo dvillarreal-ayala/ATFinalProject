@@ -83,6 +83,12 @@ class Game:
             if pixelCoordthumb:
                 # Draw the circle around the index finger
                 cv2.circle(image, (pixelCoordthumb[0], pixelCoordthumb[1]), 25, RED, 5)
+
+    def fy_axis_detection(self, image, detection_result):
+        # Get image details
+        imageHeight, imageWidth = image.shape[:2]
+        # Get a list of the landmarks
+        hand_landmarks_list = detection_result.hand_landmarks
                         
     def run(self):
         # Begin writing code
@@ -108,6 +114,10 @@ class Game:
 
             # Draw box around hand when thumb is extended
             self.finger_detection(image, results, start_time)
+
+            # Checks to see if HandLandmarks 8, 7, 6 are roughly in a line
+            # and if 8 has a higher y-value than 12, which indicates that the gun shape is made
+            self.fy_axis_detection(image, results, start_time)
 
             # Change the color of the frame back
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
