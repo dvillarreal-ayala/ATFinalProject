@@ -89,6 +89,10 @@ class Game:
         imageHeight, imageWidth = image.shape[:2]
         # Get a list of the landmarks
         hand_landmarks_list = detection_result.hand_landmarks
+        # Loop through the detected hands to visualize.
+        for idx in range(len(hand_landmarks_list)):
+            hand_landmarks = hand_landmarks_list[idx]
+
                         
     def run(self):
         # Begin writing code
@@ -117,7 +121,7 @@ class Game:
 
             # Checks to see if HandLandmarks 8, 7, 6 are roughly in a line
             # and if 8 has a higher y-value than 12, which indicates that the gun shape is made
-            self.fy_axis_detection(image, results, start_time)
+            self.fy_axis_detection(image, results)
 
             # Change the color of the frame back
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
