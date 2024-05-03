@@ -89,9 +89,25 @@ class Game:
         imageHeight, imageWidth = image.shape[:2]
         # Get a list of the landmarks
         hand_landmarks_list = detection_result.hand_landmarks
+        
         # Loop through the detected hands to visualize.
         for idx in range(len(hand_landmarks_list)):
             hand_landmarks = hand_landmarks_list[idx]
+
+            # Get the coordinates of just the fingers
+            index = hand_landmarks[HandLandmarkPoints.INDEX_FINGER_TIP.value]
+            middle = hand_landmarks[HandLandmarkPoints.MIDDLE_FINGER_TIP.value]
+            palm_point1 = hand_landmarks[HandLandmarkPoints.INDEX_FINGER_MCP.value]
+            palm_point2 = hand_landmarks[HandLandmarkPoints.MIDDLE_FINGER_MCP.value]
+
+            if index.y < middle.y:
+                cv2.circle(image, (int(middle.x), int(middle.y)), 25, BLUE, 5)
+                #cv2.line(image, (STARTING_X,STARTING_Y), (ENDING_X, ENDING_Y), RED, 25, cv2.LINE_8)
+                # Creating two points(tuples) that I'm using to find the slope of the fingers 
+                starting_point = (index.x, ((int(middle.y) + int(index.y)) / 2))
+                palm_point = (palm_point1.x,((int(palm_point1.y) + int(palm_point2)) / 2))
+                cv2.line(image, (int(middle.x), int(middle.y)), (), RED, 25, cv2.LINE_8)
+
 
                         
     def run(self):
