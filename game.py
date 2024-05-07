@@ -104,11 +104,34 @@ class Game:
                 cv2.circle(image, (int(middle.x), int(middle.y)), 25, BLUE, 5)
                 #cv2.line(image, (STARTING_X,STARTING_Y), (ENDING_X, ENDING_Y), RED, 25, cv2.LINE_8)
                 # Creating two points(tuples) that I'm using to find the slope of the fingers 
-                starting_point = (index.x, ((int(middle.y) + int(index.y)) / 2))
-                palm_point = (palm_point1.x,((int(palm_point1.y) + int(palm_point2)) / 2))
-                cv2.line(image, (int(middle.x), int(middle.y)), (), RED, 25, cv2.LINE_8)
+                starting_point = (int(index.x), ((int(middle.y) + int(index.y)) / 2))
+                palm_point = (int(palm_point1.x),((int(palm_point1.y) + int(palm_point2)) / 2))
+                slope = (starting_point[1] - palm_point[1]) / (starting_point[0] - palm_point[0])
+                # cv2.line(image, (starting_point), , RED, 25, cv2.LINE_8)
 
-
+    def slope(x1,y1,x2,y2):
+        # Ensure that the x-values won't be zero when divided
+        if x1!=x2:
+            return ((y2 - y1) / (x2 - x1))
+        else:
+            return 'NA'
+    
+    def drawLine(self,image,x1,y1,x2,y2):
+        m = self.slope(x1,y1,x2,y2)
+        imageHeight, imageWeight = image.shape[:2]
+        if m!='NA':
+            # Here we are essentially extending the line to x=0 and x=width and calculating 
+            # the y associated with it starting point
+            px = 0
+            py =-(x1-0) * m + y1
+            ##ending point
+            qx = imageWeight
+            qy =-(x2-imageWeight)* m + y2
+        else:
+        # if slope is zero, draw a line with x=x1 and y=0 and y=height
+            px,py = x1,0
+            qx,qy = x1,imageHeight
+        cv2.line(image, (int(px), int(py)), (int(qx), int(qy)), (0, 255, 0), 2)
                         
     def run(self):
         # Begin writing code
