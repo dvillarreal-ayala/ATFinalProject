@@ -67,11 +67,13 @@ class Game:
             index = hand_landmarks[HandLandmarkPoints.INDEX_FINGER_TIP.value]
             middle = hand_landmarks[HandLandmarkPoints.MIDDLE_FINGER_TIP.value] 
             thumb = hand_landmarks[HandLandmarkPoints.THUMB_TIP.value]
+            ring = hand_landmarks[HandLandmarkPoints.RING_FINGER_TIP.value]
 
             # Map the coordinate back to screen dimensions
             pixelCoordindex = DrawingUtil._normalized_to_pixel_coordinates(index.x, index.y, imageWidth, imageHeight)
             pixelCoordmiddle = DrawingUtil._normalized_to_pixel_coordinates(middle.x, middle.y, imageWidth, imageHeight)
             pixelCoordthumb = DrawingUtil._normalized_to_pixel_coordinates(thumb.x, thumb.y, imageWidth, imageHeight)
+            pixelCoordring = DrawingUtil._normalized_to_pixel_coordinates(ring.x, ring.y, imageWidth, imageHeight)
 
             if pixelCoordindex:
                 # Draw the circle around the index finger
@@ -82,6 +84,9 @@ class Game:
             if pixelCoordthumb:
                 # Draw the circle around the index finger
                 cv2.circle(image, (pixelCoordthumb[0], pixelCoordthumb[1]), 25, RED, 5)
+            if pixelCoordring:
+                # Draw the circle around the index finger
+                cv2.circle(image, (pixelCoordring[0], pixelCoordring[1]), 25, RED, 5)
 
     # fy_axis_detection was originally written by Damian but edited using ChatGPT when 
     # encountering errors I wasn't familiar with
@@ -98,26 +103,41 @@ class Game:
             # Get the coordinates of just the fingers
             index = hand_landmarks[HandLandmarkPoints.INDEX_FINGER_TIP.value]
             middle = hand_landmarks[HandLandmarkPoints.MIDDLE_FINGER_TIP.value]
-            #palm_point1 = hand_landmarks[HandLandmarkPoints.INDEX_FINGER_MCP.value]
-            #palm_point2 = hand_landmarks[HandLandmarkPoints.MIDDLE_FINGER_MCP.value]
+            palm = hand_landmarks[HandLandmarkPoints.MIDDLE_FINGER_MCP.value]
+            ring = hand_landmarks[HandLandmarkPoints.RING_FINGER_TIP.value]
+            thumb = hand_landmarks[HandLandmarkPoints.THUMB_TIP.value]
+
             pixelCoordindex = DrawingUtil._normalized_to_pixel_coordinates(index.x, index.y, imageWidth, imageHeight)
             pixelCoordmiddle = DrawingUtil._normalized_to_pixel_coordinates(middle.x, middle.y, imageWidth, imageHeight)
+            pixelCoord_palmpoint = DrawingUtil._normalized_to_pixel_coordinates(palm.x, palm.y, imageWidth, imageHeight)
+            pixelCoordthumb = DrawingUtil._normalized_to_pixel_coordinates(thumb.x, thumb.y, imageWidth, imageHeight)
 
             if index.y < middle.y:
-                temp_value = int((pixelCoordindex[1] + pixelCoordmiddle[1]) / 2)
-                starting_point = (pixelCoordmiddle[0], temp_value)
-                print(starting_point)
+                starting_point = (pixelCoordmiddle[0], pixelCoordmiddle[1])
+                #palm_point = (pixelCoord_palmpoint[0], pixelCoord_palmpoint[1])
+                #print(starting_point)
                 #cv2.circle(image, starting_point, 25, BLUE, 5)
-                end_point = (imageWidth, temp_value)
-                # Draw line from starting_point to endpoint
-                cv2.line(image, starting_point, end_point, BLUE, 5, cv2.LINE_AA)
 
-    def slope(x1,y1,x2,y2):
+                slope = self.slope(pixelCoord_palmpoint[0], pixelCoord_palmpoint[1], pixelCoordmiddle[0], pixelCoordmiddle[1])
+                # print(slope)
+                
+                end_point_y = int(starting_point[1] + (imageWidth - starting_point[0]) * slope)
+                end_point = (imageWidth, end_point_y)
+                # Draw line from starting_point to endpoint
+                cv2.line(image, starting_point, end_point, BLUE, 5)
+                # Gun will shoot when thumb tip and ring finger tip overlap
+                if ring.x > (thumb.x - 25) and ring.x < (thumb.x + 25):
+                    if ring.y > (thumb.y - 25) and ring.y < (thumb.y + 25):
+                        print("Overlapping fingers")
+                        
+
+    def slope(self, x1, y1, x2, y2):
         # Ensure that the x-values won't be zero when divided
         if x1!=x2:
             return ((y2 - y1) / (x2 - x1))
         else:
-            return 'NA'
+            print("Can't provide a slope when the denominator is 0")
+            return 
     
                         
     def run(self):
