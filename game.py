@@ -44,8 +44,7 @@ class Game:
             # Save the landmarks into a NormalizedLandmarkList
             hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
             hand_landmarks_proto.landmark.extend([
-            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks
-            ])
+            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks])
 
             # Draw the landmarks on the hand
             DrawingUtil.draw_landmarks(image,
@@ -84,6 +83,8 @@ class Game:
                 # Draw the circle around the index finger
                 cv2.circle(image, (pixelCoordthumb[0], pixelCoordthumb[1]), 25, RED, 5)
 
+    # fy_axis_detection was originally written by Damian but edited using ChatGPT when 
+    # encountering errors I wasn't familiar with
     def fy_axis_detection(self, image, detection_result):
         # Get image details
         imageHeight, imageWidth = image.shape[:2]
@@ -97,17 +98,19 @@ class Game:
             # Get the coordinates of just the fingers
             index = hand_landmarks[HandLandmarkPoints.INDEX_FINGER_TIP.value]
             middle = hand_landmarks[HandLandmarkPoints.MIDDLE_FINGER_TIP.value]
-            palm_point1 = hand_landmarks[HandLandmarkPoints.INDEX_FINGER_MCP.value]
-            palm_point2 = hand_landmarks[HandLandmarkPoints.MIDDLE_FINGER_MCP.value]
+            #palm_point1 = hand_landmarks[HandLandmarkPoints.INDEX_FINGER_MCP.value]
+            #palm_point2 = hand_landmarks[HandLandmarkPoints.MIDDLE_FINGER_MCP.value]
+            pixelCoordindex = DrawingUtil._normalized_to_pixel_coordinates(index.x, index.y, imageWidth, imageHeight)
+            pixelCoordmiddle = DrawingUtil._normalized_to_pixel_coordinates(middle.x, middle.y, imageWidth, imageHeight)
 
             if index.y < middle.y:
-                cv2.circle(image, (int(middle.x), int(middle.y)), 25, BLUE, 5)
-                #cv2.line(image, (STARTING_X,STARTING_Y), (ENDING_X, ENDING_Y), RED, 25, cv2.LINE_8)
-                # Creating two points(tuples) that I'm using to find the slope of the fingers 
-                starting_point = (int(index.x), ((int(middle.y) + int(index.y)) / 2))
-                palm_point = (int(palm_point1.x),((int(palm_point1.y) + int(palm_point2)) / 2))
-                slope = (starting_point[1] - palm_point[1]) / (starting_point[0] - palm_point[0])
-                # cv2.line(image, (starting_point), , RED, 25, cv2.LINE_8)
+                temp_value = int((pixelCoordindex[1] + pixelCoordmiddle[1]) / 2)
+                starting_point = (pixelCoordmiddle[0], temp_value)
+                print(starting_point)
+                #cv2.circle(image, starting_point, 25, BLUE, 5)
+                end_point = (imageWidth, temp_value)
+                # Draw line from starting_point to endpoint
+                cv2.line(image, starting_point, end_point, BLUE, 5, cv2.LINE_AA)
 
     def slope(x1,y1,x2,y2):
         # Ensure that the x-values won't be zero when divided
@@ -116,22 +119,6 @@ class Game:
         else:
             return 'NA'
     
-    def drawLine(self,image,x1,y1,x2,y2):
-        m = self.slope(x1,y1,x2,y2)
-        imageHeight, imageWeight = image.shape[:2]
-        if m!='NA':
-            # Here we are essentially extending the line to x=0 and x=width and calculating 
-            # the y associated with it starting point
-            px = 0
-            py =-(x1-0) * m + y1
-            ##ending point
-            qx = imageWeight
-            qy =-(x2-imageWeight)* m + y2
-        else:
-        # if slope is zero, draw a line with x=x1 and y=0 and y=height
-            px,py = x1,0
-            qx,qy = x1,imageHeight
-        cv2.line(image, (int(px), int(py)), (int(qx), int(qy)), (0, 255, 0), 2)
                         
     def run(self):
         # Begin writing code
@@ -155,7 +142,7 @@ class Game:
             # Draw the hand landmarks
             # self.draw_landmarks_on_hand(image, results)
 
-            # Draw box around hand when thumb is extended
+            # Draw circle around fingers when extended
             self.finger_detection(image, results, start_time)
 
             # Checks to see if HandLandmarks 8, 7, 6 are roughly in a line
@@ -168,7 +155,6 @@ class Game:
 
             # Break the loop if the user presses 'q'
             if cv2.waitKey(50) & 0xFF == ord('q'):
-                print(self.score)
                 break
             
         self.video.release()
