@@ -48,6 +48,7 @@ class Enemy:
         """
         cv2.circle(image, (self.x, self.y), 25, RED, 5)
 
+    # Written with the help of ChatGPT
     def check_interception(self, start_point, end_point):
         """
         Check if the enemy is intercepted by the line segment formed by start_point and end_point.
@@ -249,7 +250,7 @@ class Game:
 
             # Change the color of the frame back
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            cv2.imshow('First Person Shooter', image)
+            cv2.imshow('Quick', image)
 
             # Break the loop if the user presses 'q'
             if cv2.waitKey(50) & 0xFF == ord('q'):
